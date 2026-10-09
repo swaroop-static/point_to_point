@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Env (never commit secrets of any kind)
+.env
+.env.local
+.env.*.local
+
+# Local scratch / sample data (user's own images never belong in the repo)
+scratch/
+samples/
+*.jpg
+*.jpeg
+*.png
+*.webp
+# Allow the one app icon
+!public/icon.svg
