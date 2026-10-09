@@ -45,7 +45,7 @@ function done(tx: IDBTransaction): Promise<void> {
 export async function saveSession(project: Project, getFile: (id: ImageId) => Blob | null): Promise<void> {
   const db = await open();
   try {
-    const live = new Set([...project.images.map((i) => i.id), ...(project.meshes ?? []).map((m) => m.id)]);
+    const live = new Set([...project.images.map((i) => i.id), ...(project.meshes ?? []).map((m) => m.id), ...(project.clouds ?? []).map((c) => c.id)]);
     const existing = await new Promise<IDBValidKey[]>((resolve, reject) => {
       const r = db.transaction('files').objectStore('files').getAllKeys();
       r.onsuccess = () => resolve(r.result);

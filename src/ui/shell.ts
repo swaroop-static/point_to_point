@@ -11,6 +11,7 @@ import { isTypingTarget } from '../workspaces/image2d/workspace';
 import { Mode2D } from '../modes/mode2d';
 import { ModePhoto3D } from '../modes/modePhoto3d';
 import { ModeMesh } from '../modes/modeMesh';
+import { ModeCloud } from '../modes/modeCloud';
 import { clear, h } from './dom';
 import type { ModeContext, ModeController, ModeId } from './mode';
 
@@ -64,6 +65,7 @@ export class Shell {
     this.registerMode(new Mode2D(ctx));
     this.registerMode(new ModePhoto3D(ctx));
     this.registerMode(new ModeMesh(ctx));
+    this.registerMode(new ModeCloud(ctx));
     this.setMode('2d');
 
     store.subscribe(() => { this.scheduleRender(); this.scheduleAutosave(); });
@@ -355,7 +357,7 @@ export class Shell {
           setSourceFile(img.id, blob);
         } catch { /* leave as "not loaded"; the user can re-add the file */ }
       }
-      for (const m of project.meshes ?? []) {
+      for (const m of [...(project.meshes ?? []), ...(project.clouds ?? [])]) {
         const blob = session.files.get(m.id);
         if (blob) setSourceFile(m.id, blob);
       }
@@ -525,6 +527,10 @@ function countClassUse(project: import('../core/types').Project, classId: string
     n += (im.cuboids ?? []).filter((c) => c.classId === classId).length;
   }
   for (const m of project.meshes ?? []) n += m.labels.filter((l) => l.classId === classId).length;
+  for (const c of project.clouds ?? []) {
+    n += c.cuboids.filter((b) => b.classId === classId).length;
+    n += c.pointLabels.filter((l) => l.classId === classId).length;
+  }
   return n;
 }
 

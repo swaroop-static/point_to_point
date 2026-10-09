@@ -141,6 +141,43 @@ export interface MeshEntry {
   labels: MeshLabel[];
 }
 
+/** A 3D box in a point cloud: center, size and yaw about the cloud's up axis (see src/cloud/geom.ts). */
+export interface Cuboid3D {
+  id: string;
+  /** Persistent object id (integer >= 1), unique within the cloud. */
+  objectId: number;
+  classId: ClassId;
+  center: Vec3;
+  /** length along local a, width along local b, height along the up axis. All > 0. */
+  size: { length: number; width: number; height: number };
+  /** Radians, from +a toward +b. */
+  yaw: number;
+  hidden?: boolean;
+  locked?: boolean;
+}
+
+/** Points given a semantic class, as sorted non-overlapping half-open index ranges. A point is in at most one label. */
+export interface PointLabel {
+  id: string;
+  classId: ClassId;
+  ranges: [number, number][];
+}
+
+/**
+ * A point cloud and its annotations. The points are never stored in the
+ * project; the file relinks by name and `pointCount` must match.
+ */
+export interface CloudEntry {
+  id: string;
+  name: string;
+  format: 'ply' | 'pcd';
+  pointCount: number;
+  /** Which axis points up: cuboid yaw is a rotation about it. */
+  upAxis: 'y' | 'z';
+  cuboids: Cuboid3D[];
+  pointLabels: PointLabel[];
+}
+
 /**
  * Versioned project JSON. Every exported file carries `formatVersion` so
  * future releases can migrate older projects safely.
@@ -157,6 +194,8 @@ export interface Project {
   images: ImageEntry[];
   /** 3D models with face labels (mesh workspace). Optional; absent in older files. */
   meshes?: MeshEntry[];
+  /** Point clouds with cuboids and point labels (point-cloud workspace). Optional. */
+  clouds?: CloudEntry[];
 }
 
 /** Transient (non-persisted) viewport state for the 2D workspace. */

@@ -2,7 +2,7 @@
 
 A browser-based annotation tool. Draw boxes, polygons, polylines and keypoints on your images, place 3D cuboids on photos, label faces of 3D models, optionally click-to-segment with a small AI model, manage classes, undo/redo, save your project, and export COCO, YOLO or documented JSON. Everything runs in your browser: your files are never uploaded, there is no server, no account, no telemetry.
 
-**Status: 0.3.0.** The 2D editor is the most tested part. Photo cuboids, AI click-to-segment and mesh annotation work and were exercised in a real browser with synthetic data, but have **not** been tried on real-world images or large models. Point-cloud annotation is not built. See the [roadmap](docs/roadmap.md).
+**Status: 0.4.0.** The 2D editor is the most tested part. Photo cuboids, AI click-to-segment, mesh annotation and point-cloud annotation work and were exercised in a real browser with synthetic data, but have **not** been tried on real-world images, real scans or large models, and drawing speed on a real GPU was not measured. See the [roadmap](docs/roadmap.md).
 
 ## What works today
 
@@ -26,11 +26,12 @@ A browser-based annotation tool. Draw boxes, polygons, polylines and keypoints o
 | Unsaved-changes indicator and close-tab warning | Works (project level) |
 | **3D photo**: place, drag, rotate, resize cuboids over a photo with an assumed pinhole camera; export JSON | Works, relative units only unless you declare a calibrated camera ([docs](docs/photo-cuboids.md)) |
 | **AI click** (optional): click an object, get an editable polygon; models downloaded on request (about 14 or 45 MB) or loaded from your files | Works; verified on a synthetic image only ([docs](docs/ai-assist.md)) |
+| **3D cloud**: load `.ply` / `.pcd`; orbit; place, drag, rotate, resize cuboids with class and object id; Shift+drag to select points and label them; export JSON | Works; synthetic data only, 2M points tested for select/label speed ([docs](docs/pointcloud-annotation.md)) |
 | **3D model**: load `.glb`, `.gltf` (self-contained), `.obj`, `.ply` with faces; select face / smooth region / part; label as numbered class objects; export JSON | Works; geometry only, textures ignored ([docs](docs/mesh-annotation.md)) |
 
 ## Not built yet (no placeholder buttons exist for these)
 
-Point-cloud annotation, YOLO import, train/val split, per-corner cuboid handles. See [docs/roadmap.md](docs/roadmap.md).
+YOLO import, train/val split, per-corner cuboid handles (photo and cloud), level-of-detail rendering for huge clouds. See [docs/roadmap.md](docs/roadmap.md).
 
 ## Run locally
 
@@ -65,6 +66,7 @@ Files are read with the browser File API and processed locally. The app makes no
 - [3D cuboids on photos](docs/photo-cuboids.md)
 - [AI click-to-segment](docs/ai-assist.md)
 - [3D model annotation](docs/mesh-annotation.md)
+- [Point-cloud annotation](docs/pointcloud-annotation.md)
 - [Project file format](docs/project-format.md)
 - [Exports and imports](docs/exports.md)
 - [Deployment (free static hosting)](docs/deployment.md)

@@ -22,9 +22,9 @@ Camera/cuboid math with unit tests, project format v2, export schema ([photo-cub
 
 GLB / glTF (self-contained) / OBJ / PLY with faces; face, smooth-region and part selection; numbered class objects; JSON export ([mesh-annotation.md](mesh-annotation.md)). Open: vertex-level selection, paint brush, textures, external glTF resources, an acceleration structure for very large models, benchmarks.
 
-## Phase 5: Point-cloud annotation (not started)
+## Phase 5: Point-cloud annotation (done in 0.4.0, basic)
 
-PLY first, then PCD only after parsing is verified. Needs chunked or octree rendering for large clouds, 3D cuboids, classes and object ids, export.
+PLY and PCD (ASCII/binary, uncompressed); oriented cuboids with class and object id; Shift+drag point selection and semantic point labels; JSON export ([pointcloud-annotation.md](pointcloud-annotation.md)). Open: level-of-detail / octree rendering for very large clouds, drawing benchmarks on real GPUs, occlusion-aware and lasso selection, per-corner cuboid handles, pitch/roll, compressed PCD, LAS/LAZ, real-scan testing.
 
 ## Later, only if there is demand
 

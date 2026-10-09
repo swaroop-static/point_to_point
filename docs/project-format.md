@@ -54,6 +54,10 @@ Each image may carry two optional fields, kept separate from `annotations`:
 
 Optional top-level `meshes`: `[{ id, name, format: "glb"|"gltf"|"obj"|"ply", faceCount, labels: [{ id, objectId, classId, ranges: [[start, end], ...], hidden? }] }]`. `ranges` are sorted, non-overlapping half-open triangle index ranges; a face may be in only one label; `objectId` is an integer >= 1 unique per mesh. The model file is not stored; it relinks by `name` and `faceCount`. See [mesh-annotation.md](mesh-annotation.md).
 
+## Point clouds (3D cloud workspace)
+
+Optional top-level `clouds`: `[{ id, name, format: "ply"|"pcd", pointCount, upAxis: "y"|"z", cuboids: [{ id, objectId, classId, center{x,y,z}, size{length,width,height}, yaw, hidden?, locked? }], pointLabels: [{ id, classId, ranges: [[start, end], ...] }] }]`. Cuboid sizes must be positive; `objectId` is an integer >= 1 unique per cloud. `pointLabels[].ranges` are sorted, non-overlapping half-open point-index ranges, and a point may be in only one label. The points are not stored; the file relinks by `name` and `pointCount`. See [pointcloud-annotation.md](pointcloud-annotation.md).
+
 ## Versioning
 
 `formatVersion` increments on any breaking change. This build writes version 2 and migrates version 1 files on load (they simply have no cameras or cuboids). Other versions are rejected.

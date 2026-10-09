@@ -47,6 +47,20 @@ Shortcuts are ignored while you are typing in a text field.
 | V / W | Reset view / wireframe |
 | Drag, right-drag, wheel | Orbit, pan, zoom |
 
+## 3D cloud workspace
+
+| Input | Action |
+|---|---|
+| V / C | Select / add cuboid (click a point) |
+| Drag a cuboid | Move on the horizontal plane |
+| Q / E | Yaw -5 / +5 degrees |
+| H / L / Delete | Hide / lock / delete the cuboid |
+| Shift + drag | Select points inside the rectangle (adds; no occlusion) |
+| Enter | Label the selected points with the active class |
+| Esc | Clear selection, deselect cuboid |
+| T / F / S / R | Top / Front / Side / Reset view |
+| Drag, right-drag, wheel | Orbit, pan, zoom |
+
 ## Drawing
 
 | Input | Action |

@@ -147,3 +147,21 @@ export function rleClasses(perFace: Int32Array): [number, number][] {
   }
   return out;
 }
+
+/** Mark every index in the ranges (1 = in). */
+export function rangesToFlags(ranges: readonly Range[], n: number): Uint8Array {
+  const f = new Uint8Array(n);
+  for (const [s, e] of ranges) f.fill(1, s, Math.min(e, n));
+  return f;
+}
+
+/** Marked indices -> merged half-open ranges. */
+export function flagsToRanges(flags: Uint8Array): Range[] {
+  const out: Range[] = [];
+  let start = -1;
+  for (let i = 0; i < flags.length; i++) {
+    if (flags[i]) { if (start < 0) start = i; } else if (start >= 0) { out.push([start, i]); start = -1; }
+  }
+  if (start >= 0) out.push([start, flags.length]);
+  return out;
+}

@@ -1,7 +1,7 @@
 {
   "name": "annotate-anything",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Browser-first, privacy-conscious annotation platform. 2D images in Phase 1; 3D cuboids, mesh, and point-cloud planned.",
   "type": "module",
   "scripts": {

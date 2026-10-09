@@ -1,4 +1,4 @@
-import type { MeshEntry, Project } from './types';
+import type { CloudEntry, MeshEntry, Project } from './types';
 import { rangesValid } from '../mesh/faces';
 
 /**
@@ -61,7 +61,63 @@ function assertProject(x: unknown): Project {
       return mesh;
     });
   }
+  if (x['clouds'] !== undefined) {
+    if (!Array.isArray(x['clouds'])) throw new Error('Project "clouds" must be an array.');
+    const ids = new Set<string>();
+    proj.clouds = (x['clouds'] as unknown[]).map((c) => {
+      const cloud = assertCloud(c, classIds);
+      if (ids.has(cloud.id)) throw new Error(`Two point clouds share the id "${cloud.id}".`);
+      ids.add(cloud.id);
+      return cloud;
+    });
+  }
   return proj;
+}
+
+function assertCloud(x: unknown, classIds: Set<string>): CloudEntry {
+  if (!isObj(x)) throw new Error('Each point cloud must be an object.');
+  if (typeof x['id'] !== 'string' || !x['id']) throw new Error('Point cloud "id" must be a non-empty string.');
+  if (typeof x['name'] !== 'string' || !x['name']) throw new Error('Point cloud "name" must be a non-empty string.');
+  const name = x['name'];
+  if (x['format'] !== 'ply' && x['format'] !== 'pcd') throw new Error(`Point cloud "${name}" has an unsupported format.`);
+  if (!Number.isInteger(x['pointCount']) || (x['pointCount'] as number) < 1) throw new Error(`Point cloud "${name}" has an invalid pointCount.`);
+  const pointCount = x['pointCount'] as number;
+  if (x['upAxis'] !== 'y' && x['upAxis'] !== 'z') throw new Error(`Point cloud "${name}" upAxis must be "y" or "z".`);
+  if (!Array.isArray(x['cuboids'])) throw new Error(`Point cloud "${name}" "cuboids" must be an array.`);
+  if (!Array.isArray(x['pointLabels'])) throw new Error(`Point cloud "${name}" "pointLabels" must be an array.`);
+  const objectIds = new Set<number>();
+  const cuboids = (x['cuboids'] as unknown[]).map((c): CloudEntry['cuboids'][number] => {
+    if (!isObj(c)) throw new Error(`A cuboid in "${name}" is not an object.`);
+    if (typeof c['id'] !== 'string' || !c['id']) throw new Error(`Cuboid "id" must be a non-empty string in "${name}".`);
+    if (typeof c['classId'] !== 'string' || !classIds.has(c['classId'])) throw new Error(`A cuboid in "${name}" refers to an unknown class.`);
+    if (!Number.isInteger(c['objectId']) || (c['objectId'] as number) < 1) throw new Error(`Cuboid objectId must be an integer >= 1 in "${name}".`);
+    if (objectIds.has(c['objectId'] as number)) throw new Error(`"${name}" has two cuboids with objectId ${String(c['objectId'])}.`);
+    objectIds.add(c['objectId'] as number);
+    const ce = c['center'], s = c['size'];
+    if (!isObj(ce) || !num(ce['x']) || !num(ce['y']) || !num(ce['z'])) throw new Error(`Invalid cuboid center in "${name}".`);
+    if (!isObj(s) || !num(s['length']) || !num(s['width']) || !num(s['height']) || s['length'] <= 0 || s['width'] <= 0 || s['height'] <= 0) {
+      throw new Error(`Cuboid size must be three positive numbers in "${name}".`);
+    }
+    if (!num(c['yaw'])) throw new Error(`Invalid cuboid yaw in "${name}".`);
+    const out: CloudEntry['cuboids'][number] = {
+      id: c['id'], objectId: c['objectId'] as number, classId: c['classId'],
+      center: { x: ce['x'], y: ce['y'], z: ce['z'] },
+      size: { length: s['length'], width: s['width'], height: s['height'] }, yaw: c['yaw'],
+    };
+    if (typeof c['hidden'] === 'boolean') out.hidden = c['hidden'];
+    if (typeof c['locked'] === 'boolean') out.locked = c['locked'];
+    return out;
+  });
+  const pointLabels = (x['pointLabels'] as unknown[]).map((l): CloudEntry['pointLabels'][number] => {
+    if (!isObj(l)) throw new Error(`A point label in "${name}" is not an object.`);
+    if (typeof l['id'] !== 'string' || !l['id']) throw new Error(`Point label "id" must be a non-empty string in "${name}".`);
+    if (typeof l['classId'] !== 'string' || !classIds.has(l['classId'])) throw new Error(`A point label in "${name}" refers to an unknown class.`);
+    if (!Array.isArray(l['ranges']) || !rangesValid(l['ranges'] as [number, number][], pointCount)) throw new Error(`A point label in "${name}" has invalid index ranges.`);
+    return { id: l['id'], classId: l['classId'], ranges: (l['ranges'] as [number, number][]).map((r) => [r[0], r[1]] as [number, number]) };
+  });
+  const all = pointLabels.flatMap((l) => l.ranges).sort((a, b) => a[0] - b[0]);
+  for (let i = 1; i < all.length; i++) if (all[i][0] < all[i - 1][1]) throw new Error(`"${name}" has a point in more than one label.`);
+  return { id: x['id'], name, format: x['format'], pointCount, upAxis: x['upAxis'], cuboids, pointLabels };
 }
 
 const MESH_FORMATS = new Set(['glb', 'gltf', 'obj', 'ply']);
