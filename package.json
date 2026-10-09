@@ -1,7 +1,7 @@
 {
   "name": "annotate-anything",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Browser-first, privacy-conscious annotation platform. 2D images in Phase 1; 3D cuboids, mesh, and point-cloud planned.",
   "type": "module",
   "scripts": {
@@ -13,8 +13,13 @@
     "prebuild": "tsc --noEmit"
   },
   "devDependencies": {
+    "@types/three": "^0.170.0",
     "typescript": "^5.5.4",
     "vite": "^5.4.8",
     "vitest": "^2.1.9"
+  },
+  "dependencies": {
+    "onnxruntime-web": "^1.19.2",
+    "three": "^0.170.0"
   }
 }

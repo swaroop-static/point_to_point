@@ -1,8 +1,8 @@
 # Annotate Anything
 
-A browser-based annotation tool. Draw boxes, polygons, polylines and keypoints on your images, manage classes, undo/redo, save your project, and export COCO or YOLO datasets. Everything runs in your browser: images are never uploaded, there is no server, no account, no telemetry.
+A browser-based annotation tool. Draw boxes, polygons, polylines and keypoints on your images, place 3D cuboids on photos, label faces of 3D models, optionally click-to-segment with a small AI model, manage classes, undo/redo, save your project, and export COCO, YOLO or documented JSON. Everything runs in your browser: your files are never uploaded, there is no server, no account, no telemetry.
 
-**Status: 2D editor complete for version 0.2.0.** See the [roadmap](docs/roadmap.md) for AI-assisted segmentation and the 3D workspaces, which are not built yet.
+**Status: 0.3.0.** The 2D editor is the most tested part. Photo cuboids, AI click-to-segment and mesh annotation work and were exercised in a real browser with synthetic data, but have **not** been tried on real-world images or large models. Point-cloud annotation is not built. See the [roadmap](docs/roadmap.md).
 
 ## What works today
 
@@ -24,10 +24,13 @@ A browser-based annotation tool. Draw boxes, polygons, polylines and keypoints o
 | Export YOLO detection and YOLO segmentation (`.zip` with images, labels, `data.yaml`) | Works |
 | Import COCO JSON as a new project | Works (no RLE masks) |
 | Unsaved-changes indicator and close-tab warning | Works (project level) |
+| **3D photo**: place, drag, rotate, resize cuboids over a photo with an assumed pinhole camera; export JSON | Works, relative units only unless you declare a calibrated camera ([docs](docs/photo-cuboids.md)) |
+| **AI click** (optional): click an object, get an editable polygon; models downloaded on request (about 14 or 45 MB) or loaded from your files | Works; verified on a synthetic image only ([docs](docs/ai-assist.md)) |
+| **3D model**: load `.glb`, `.gltf` (self-contained), `.obj`, `.ply` with faces; select face / smooth region / part; label as numbered class objects; export JSON | Works; geometry only, textures ignored ([docs](docs/mesh-annotation.md)) |
 
 ## Not built yet (no placeholder buttons exist for these)
 
-AI-assisted segmentation, photo 3D cuboids, mesh annotation, point-cloud annotation, YOLO import, train/val split. See [docs/roadmap.md](docs/roadmap.md).
+Point-cloud annotation, YOLO import, train/val split, per-corner cuboid handles. See [docs/roadmap.md](docs/roadmap.md).
 
 ## Run locally
 
@@ -39,7 +42,7 @@ npm install
 npm run dev        # http://127.0.0.1:5173
 npm test           # unit tests (vitest)
 npm run typecheck
-npm run build      # outputs static files to dist/
+npm run build      # outputs static files to dist/ (app 136 KB JS; three.js 688 KB and the 11 MB AI runtime load only when you open those features)
 npm run preview    # serve dist/ at http://127.0.0.1:4173
 ```
 
@@ -54,11 +57,14 @@ npm run preview    # serve dist/ at http://127.0.0.1:4173
 
 ## Privacy
 
-Files are read with the browser File API and drawn to a canvas locally. After the page loads, the app makes no network requests and uses system fonts only. There is no analytics. Autosaved data stays in this browser.
+Files are read with the browser File API and processed locally. The app makes no network requests on its own and uses system fonts only. There is no analytics. Autosaved data stays in this browser. The **only** network request the app can make is the optional AI model download (from huggingface.co) after you press the download button; your images and clicks never leave the browser. Details in [docs/ai-assist.md](docs/ai-assist.md).
 
 ## Docs
 
 - [Keyboard shortcuts](docs/shortcuts.md)
+- [3D cuboids on photos](docs/photo-cuboids.md)
+- [AI click-to-segment](docs/ai-assist.md)
+- [3D model annotation](docs/mesh-annotation.md)
 - [Project file format](docs/project-format.md)
 - [Exports and imports](docs/exports.md)
 - [Deployment (free static hosting)](docs/deployment.md)

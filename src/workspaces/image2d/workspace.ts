@@ -21,6 +21,16 @@ type Drag =
   | { kind: 'edge'; annId: string; a: number; b: number; orig: Point2D[]; startImg: Point2D; moved: boolean }
   | { kind: 'resize'; annId: string; handle: BoxHandle; orig: BoxGeom; moved: boolean };
 
+/**
+ * A tool implemented outside the workspace (the optional AI click tool). The
+ * workspace only forwards clicks in image pixels and lets it paint an overlay;
+ * it knows nothing about models.
+ */
+export interface ExternalTool {
+  onPoint(p: Point2D, negative: boolean): void;
+  draw(ctx: CanvasRenderingContext2D, vp: Viewport, dpr: number): void;
+}
+
 interface Draft { kind: 'polygon' | 'polyline'; points: Point2D[] }
 interface Preview { annId: string; points: Point2D[]; closed: boolean }
 
@@ -80,6 +90,11 @@ export class Image2DWorkspace {
   }
 
   // ---- public API ----
+
+  private external: ExternalTool | null = null;
+  setExternalTool(t: ExternalTool | null): void { this.external = t; this.requestRender(); }
+  /** Repaint (the external tool changed its overlay). */
+  repaint(): void { this.requestRender(); }
 
   fit(): void {
     const img = this.store.getActiveImage();
@@ -238,6 +253,14 @@ export class Image2DWorkspace {
       this.canvas.setPointerCapture(e.pointerId);
       this.drag = { kind: 'pan', lastX: c.x, lastY: c.y };
       this.updateCursor();
+      return;
+    }
+    if (this.store.getUI().activeTool === 'sam' && this.external && (e.button === 0 || e.button === 2)) {
+      if (!getBitmap(img.id)) {
+        this.cb.onNotice(`"${img.name}" is not loaded. Add the image file again to edit it.`);
+        return;
+      }
+      this.external.onPoint(canvasToImage(this.vp, c), e.button === 2 || e.shiftKey || e.altKey);
       return;
     }
     if (e.button === 2) {
@@ -601,6 +624,7 @@ export class Image2DWorkspace {
     }
     if (this.preview) this.drawPreview(this.preview);
     if (this.draft) this.drawDraft(this.draft);
+    if (this.external && this.store.getUI().activeTool === 'sam') this.external.draw(ctx, vp, dpr);
   }
 
   private drawAnnotation(a: Annotation, selected: boolean): void {

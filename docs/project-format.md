@@ -50,6 +50,10 @@ Each image may carry two optional fields, kept separate from `annotations`:
 - `camera`: `{ "fx", "fy", "cx", "cy", "calibrated" }`, a pinhole camera in image pixels. `calibrated` is true only when the user states the numbers come from a real calibration.
 - `cuboids`: list of `{ id, objectId, classId, center{x,y,z}, size{length,width,height}, rotationY, hidden?, locked?, note? }` in the camera frame. See [photo-cuboids.md](photo-cuboids.md).
 
+## Meshes (3D model workspace)
+
+Optional top-level `meshes`: `[{ id, name, format: "glb"|"gltf"|"obj"|"ply", faceCount, labels: [{ id, objectId, classId, ranges: [[start, end], ...], hidden? }] }]`. `ranges` are sorted, non-overlapping half-open triangle index ranges; a face may be in only one label; `objectId` is an integer >= 1 unique per mesh. The model file is not stored; it relinks by `name` and `faceCount`. See [mesh-annotation.md](mesh-annotation.md).
+
 ## Versioning
 
 `formatVersion` increments on any breaking change. This build writes version 2 and migrates version 1 files on load (they simply have no cameras or cuboids). Other versions are rejected.

@@ -10,6 +10,7 @@ import { pickFiles, pickTextFile } from '../io/download';
 import { isTypingTarget } from '../workspaces/image2d/workspace';
 import { Mode2D } from '../modes/mode2d';
 import { ModePhoto3D } from '../modes/modePhoto3d';
+import { ModeMesh } from '../modes/modeMesh';
 import { clear, h } from './dom';
 import type { ModeContext, ModeController, ModeId } from './mode';
 
@@ -62,6 +63,7 @@ export class Shell {
     };
     this.registerMode(new Mode2D(ctx));
     this.registerMode(new ModePhoto3D(ctx));
+    this.registerMode(new ModeMesh(ctx));
     this.setMode('2d');
 
     store.subscribe(() => { this.scheduleRender(); this.scheduleAutosave(); });
@@ -353,6 +355,10 @@ export class Shell {
           setSourceFile(img.id, blob);
         } catch { /* leave as "not loaded"; the user can re-add the file */ }
       }
+      for (const m of project.meshes ?? []) {
+        const blob = session.files.get(m.id);
+        if (blob) setSourceFile(m.id, blob);
+      }
       this.store.touch();
       this.toast('Session restored. Use Save project to keep a copy as a file.');
     } catch {
@@ -465,8 +471,8 @@ export class Shell {
 
   private renderClasses(activeClassId: string | null): void {
     const classes = this.store.getProject().classes;
-    const counts = classCounts(this.store.getProject(), this.store.getUI().activeImageId);
-    const sig = JSON.stringify([activeClassId, classes, [...counts]]);
+    const counts = this.mode.classCounts();
+    const sig = JSON.stringify([this.mode.id, activeClassId, classes, [...counts]]);
     if (sig === this.sigs.classes) return;
     // Don't rebuild the list under a name field the user is typing in.
     const focused = document.activeElement;
@@ -511,15 +517,6 @@ export class Shell {
   }
 }
 
-/** Per-class counts for the badge in the class list (current image's 2D annotations). */
-function classCounts(project: import('../core/types').Project, activeImageId: string | null): Map<string, number> {
-  const counts = new Map<string, number>();
-  const img = project.images.find((i) => i.id === activeImageId);
-  for (const a of img?.annotations ?? []) counts.set(a.classId, (counts.get(a.classId) ?? 0) + 1);
-  for (const c of img?.cuboids ?? []) counts.set(c.classId, (counts.get(c.classId) ?? 0) + 1);
-  return counts;
-}
-
 /** How many annotations of any kind use this class (blocks deleting a class that is still in use). */
 function countClassUse(project: import('../core/types').Project, classId: string): number {
   let n = 0;
@@ -527,6 +524,7 @@ function countClassUse(project: import('../core/types').Project, classId: string
     n += im.annotations.filter((a) => a.classId === classId).length;
     n += (im.cuboids ?? []).filter((c) => c.classId === classId).length;
   }
+  for (const m of project.meshes ?? []) n += m.labels.filter((l) => l.classId === classId).length;
   return n;
 }
 

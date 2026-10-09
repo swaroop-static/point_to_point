@@ -11,7 +11,41 @@ Shortcuts are ignored while you are typing in a text field.
 | P | Polygon |
 | Y | Polyline |
 | K | Keypoint |
+| M | AI click (optional; needs a model, see [ai-assist.md](ai-assist.md)) |
 | 1 to 9 | Make class 1-9 active (also re-classes the selected, unlocked annotation) |
+
+## AI click (2D, after enabling a model)
+
+| Input | Action |
+|---|---|
+| Left-click | Include this object |
+| Right-click, or Shift/Alt+click | Exclude |
+| Enter | Accept the previewed polygon |
+| Esc | Discard |
+| Backspace | Remove the last click |
+
+## 3D photo workspace
+
+| Key | Action |
+|---|---|
+| V / C | Select / add cuboid |
+| Drag cuboid | Move |
+| Q / E | Rotate 5 degrees |
+| W / S | Depth closer / farther |
+| H / L / Delete | Hide / lock / delete |
+| F, + / - | Fit, zoom |
+
+## 3D model workspace
+
+| Input | Action |
+|---|---|
+| F / R / O | Select by Face / smooth Region / connected Part |
+| Click, Shift+click | Select, add to selection |
+| Enter | Label the selection with the active class |
+| Esc | Clear selection |
+| Delete | Delete the selected labeled object |
+| V / W | Reset view / wireframe |
+| Drag, right-drag, wheel | Orbit, pan, zoom |
 
 ## Drawing
 

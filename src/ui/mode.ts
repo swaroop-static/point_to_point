@@ -43,6 +43,8 @@ export interface ModeController {
   handleFiles(files: File[]): Promise<void>;
   /** Called when the user picks a class in the shared class list. */
   onClassSelected(classId: string): void;
+  /** Per-class badge counts for the shared class list (what this workspace shows right now). */
+  classCounts(): Map<string, number>;
   exportItems(): ExportItem[];
   statusLeft(): string;
   statusCount(): string;

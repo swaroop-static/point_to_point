@@ -123,6 +123,12 @@ export class ModePhoto3D implements ModeController {
     }];
   }
 
+  classCounts(): Map<string, number> {
+    const out = new Map<string, number>();
+    for (const c of this.cuboids()) out.set(c.classId, (out.get(c.classId) ?? 0) + 1);
+    return out;
+  }
+
   statusLeft(): string {
     const img = this.ctx.store.getActiveImage();
     return img ? `${img.name} · ${img.width}×${img.height}px` : 'No image';

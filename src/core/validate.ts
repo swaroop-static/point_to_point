@@ -1,4 +1,5 @@
-import type { Project } from './types';
+import type { MeshEntry, Project } from './types';
+import { rangesValid } from '../mesh/faces';
 
 /**
  * Minimal structural validation for a loaded project JSON.
@@ -42,7 +43,7 @@ function assertProject(x: unknown): Project {
   const classIds = new Set(classes.map((c) => c.id));
   const images = (x['images'] as unknown[]).map((img) => assertImage(img, classIds));
 
-  return {
+  const proj: Project = {
     formatVersion: 2,
     app: 'annotate-anything',
     name: x['name'],
@@ -50,6 +51,52 @@ function assertProject(x: unknown): Project {
     classes,
     images,
   };
+  if (x['meshes'] !== undefined) {
+    if (!Array.isArray(x['meshes'])) throw new Error('Project "meshes" must be an array.');
+    const ids = new Set<string>();
+    proj.meshes = (x['meshes'] as unknown[]).map((m) => {
+      const mesh = assertMesh(m, classIds);
+      if (ids.has(mesh.id)) throw new Error(`Two meshes share the id "${mesh.id}".`);
+      ids.add(mesh.id);
+      return mesh;
+    });
+  }
+  return proj;
+}
+
+const MESH_FORMATS = new Set(['glb', 'gltf', 'obj', 'ply']);
+
+function assertMesh(x: unknown, classIds: Set<string>): MeshEntry {
+  if (!isObj(x)) throw new Error('Each mesh must be an object.');
+  if (typeof x['id'] !== 'string' || !x['id']) throw new Error('Mesh "id" must be a non-empty string.');
+  if (typeof x['name'] !== 'string' || !x['name']) throw new Error('Mesh "name" must be a non-empty string.');
+  const name = x['name'];
+  if (typeof x['format'] !== 'string' || !MESH_FORMATS.has(x['format'])) throw new Error(`Mesh "${name}" has an unsupported format.`);
+  if (!Number.isInteger(x['faceCount']) || (x['faceCount'] as number) < 1) throw new Error(`Mesh "${name}" has an invalid faceCount.`);
+  const faceCount = x['faceCount'] as number;
+  if (!Array.isArray(x['labels'])) throw new Error(`Mesh "${name}" "labels" must be an array.`);
+  const objectIds = new Set<number>();
+  const labels = (x['labels'] as unknown[]).map((l): MeshEntry['labels'][number] => {
+    if (!isObj(l)) throw new Error(`A label in mesh "${name}" is not an object.`);
+    if (typeof l['id'] !== 'string' || !l['id']) throw new Error(`Label "id" must be a non-empty string in mesh "${name}".`);
+    if (typeof l['classId'] !== 'string' || !classIds.has(l['classId'])) throw new Error(`A label in mesh "${name}" refers to an unknown class.`);
+    if (!Number.isInteger(l['objectId']) || (l['objectId'] as number) < 1) throw new Error(`Label objectId must be an integer >= 1 in mesh "${name}".`);
+    if (objectIds.has(l['objectId'] as number)) throw new Error(`Mesh "${name}" has two labels with objectId ${String(l['objectId'])}.`);
+    objectIds.add(l['objectId'] as number);
+    if (!Array.isArray(l['ranges']) || !rangesValid(l['ranges'] as [number, number][], faceCount)) {
+      throw new Error(`A label in mesh "${name}" has invalid face ranges.`);
+    }
+    const out: MeshEntry['labels'][number] = {
+      id: l['id'], objectId: l['objectId'] as number, classId: l['classId'],
+      ranges: (l['ranges'] as [number, number][]).map((r) => [r[0], r[1]] as [number, number]),
+    };
+    if (typeof l['hidden'] === 'boolean') out.hidden = l['hidden'];
+    return out;
+  });
+  // A face may belong to only one label.
+  const all = labels.flatMap((l) => l.ranges).sort((a, b) => a[0] - b[0]);
+  for (let i = 1; i < all.length; i++) if (all[i][0] < all[i - 1][1]) throw new Error(`Mesh "${name}" has a face in more than one label.`);
+  return { id: x['id'], name, format: x['format'] as MeshEntry['format'], faceCount, labels };
 }
 
 function assertClass(x: unknown): Project['classes'][number] {

@@ -117,6 +117,30 @@ export interface PhotoCuboid {
   note?: string;
 }
 
+/** One labeled object on a mesh: a set of faces (half-open [start, end) ranges) with a class. */
+export interface MeshLabel {
+  id: string;
+  /** Persistent object id (integer >= 1), unique within the mesh. */
+  objectId: number;
+  classId: ClassId;
+  /** Sorted, non-overlapping face ranges. A face belongs to at most one label. */
+  ranges: [number, number][];
+  hidden?: boolean;
+}
+
+/**
+ * A 3D model and its face labels. The model itself is never stored in the
+ * project (like images); it relinks by file name and `faceCount` must match.
+ * Face i is the i-th triangle of the model in the order documented in docs/mesh-annotation.md.
+ */
+export interface MeshEntry {
+  id: string;
+  name: string;
+  format: 'glb' | 'gltf' | 'obj' | 'ply';
+  faceCount: number;
+  labels: MeshLabel[];
+}
+
 /**
  * Versioned project JSON. Every exported file carries `formatVersion` so
  * future releases can migrate older projects safely.
@@ -131,6 +155,8 @@ export interface Project {
   savedAt: string;
   classes: ClassDef[];
   images: ImageEntry[];
+  /** 3D models with face labels (mesh workspace). Optional; absent in older files. */
+  meshes?: MeshEntry[];
 }
 
 /** Transient (non-persisted) viewport state for the 2D workspace. */
@@ -155,4 +181,4 @@ export type BoxHandle =
   | 'w'  |      'e'
   | 'sw' | 's' | 'se';
 
-export type ToolName = 'select' | 'box' | 'polygon' | 'polyline' | 'keypoint';
+export type ToolName = 'select' | 'box' | 'polygon' | 'polyline' | 'keypoint' | 'sam';
