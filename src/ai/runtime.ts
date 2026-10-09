@@ -12,6 +12,14 @@ import type { Point2D } from '../core/types';
 
 const CACHE = 'annotate-anything-models-v1';
 
+/** True when this browser can run WebAssembly SIMD, which the ONNX runtime build we ship requires. */
+export function wasmSimdSupported(): boolean {
+  try {
+    // A tiny module using a v128 instruction (the standard feature-detection snippet).
+    return typeof WebAssembly === 'object' && WebAssembly.validate(new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0, 10, 10, 1, 8, 0, 65, 0, 253, 15, 253, 98, 11]));
+  } catch { return false; }
+}
+
 export type AiState =
   | { kind: 'off' }
   | { kind: 'working'; message: string; progress?: number }
@@ -49,6 +57,10 @@ export class AiController {
   /** Download (or reuse the cached copy of) a model, then start it. */
   async enable(spec: SamModelSpec): Promise<void> {
     if (this.working) return;
+    if (!wasmSimdSupported()) {
+      this.set({ kind: 'error', message: 'AI click needs WebAssembly SIMD, which this browser does not support. Update to a current Chrome, Edge, Firefox or Safari 16.4+. Everything else works without it.' });
+      return;
+    }
     try {
       const total = spec.encoder.sizeMB + spec.decoder.sizeMB;
       let done = 0;
@@ -73,6 +85,10 @@ export class AiController {
   /** Use two .onnx files the user picked (nothing is downloaded). */
   async enableFromFiles(spec: SamModelSpec, encoderFile: File, decoderFile: File): Promise<void> {
     if (this.working) return;
+    if (!wasmSimdSupported()) {
+      this.set({ kind: 'error', message: 'AI click needs WebAssembly SIMD, which this browser does not support. Update to a current Chrome, Edge, Firefox or Safari 16.4+. Everything else works without it.' });
+      return;
+    }
     try {
       this.set({ kind: 'working', message: 'Reading model files' });
       const enc = new Uint8Array(await encoderFile.arrayBuffer());

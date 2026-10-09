@@ -61,7 +61,17 @@ export interface CocoExportResult {
   warnings: string[];
 }
 
-export function exportCoco(project: Project): CocoExportResult {
+export interface CocoOptions {
+  /**
+   * Also write every box as a 4-corner polygon in `segmentation`. Needed by
+   * segmentation tools (for example pycocotools' 'segm' evaluation) when a
+   * project mixes boxes and polygons; without it a box has no mask and those
+   * tools fail on the whole file. Turns boxes into rectangular masks.
+   */
+  boxesAsPolygons?: boolean;
+}
+
+export function exportCoco(project: Project, options: CocoOptions = {}): CocoExportResult {
   const warnings: string[] = [];
 
   // 1. Categories — one per class, id starts at 1.
@@ -107,6 +117,9 @@ export function exportCoco(project: Project): CocoExportResult {
           bbox,
           area: bbox[2] * bbox[3],
           iscrowd: 0,
+          ...(options.boxesAsPolygons
+            ? { segmentation: [[bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3], bbox[0], bbox[1] + bbox[3]]] }
+            : {}),
         });
       } else if (ann.geom.kind === 'polygon') {
         const pts = clampPointsToImage(ann.geom.points, img.width, img.height);
@@ -169,8 +182,8 @@ export function exportCoco(project: Project): CocoExportResult {
   return { dataset, warnings };
 }
 
-export function downloadCoco(project: Project): CocoExportResult {
-  const result = exportCoco(project);
+export function downloadCoco(project: Project, options: CocoOptions = {}): CocoExportResult {
+  const result = exportCoco(project, options);
   const json = JSON.stringify(result.dataset, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);

@@ -119,6 +119,7 @@ export class Mode2D implements ModeController {
   exportItems(): ExportItem[] {
     return [
       { label: 'COCO JSON', run: () => this.exportCoco() },
+      { label: 'COCO JSON (boxes also as polygons)', run: () => this.exportCoco({ boxesAsPolygons: true }) },
       { label: 'YOLO detection (.zip)', run: () => this.exportYoloZip('detect') },
       { label: 'YOLO segmentation (.zip)', run: () => this.exportYoloZip('segment') },
     ];
@@ -167,10 +168,10 @@ export class Mode2D implements ModeController {
     if (a) this.patchAnnotation(a.id, field === 'hidden' ? { hidden: !a.hidden } : { locked: !a.locked });
   }
 
-  private exportCoco(): void {
+  private exportCoco(options: { boxesAsPolygons?: boolean } = {}): void {
     const proj = this.ctx.store.getProject();
     if (!proj.images.length) { this.ctx.toast('Add at least one image before exporting.'); return; }
-    const res = downloadCoco(proj);
+    const res = downloadCoco(proj, options);
     const n = res.dataset.annotations.length;
     this.ctx.toast(`COCO exported: ${n} annotation${n === 1 ? '' : 's'} across ${res.dataset.images.length} image(s).`);
     for (const w of res.warnings.slice(0, 3)) this.ctx.toast(`Export note: ${w}`);

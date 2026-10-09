@@ -42,6 +42,7 @@ cd C:\Users\swaroop.kandukuri\Downloads\annotate_anything
 npm install
 npm run dev        # http://127.0.0.1:5173
 npm test           # unit tests (vitest)
+npm run e2e        # real-browser tests of the production build (run npm run build first; see docs/testing.md)
 npm run typecheck
 npm run build      # outputs static files to dist/ (app 136 KB JS; three.js 688 KB and the 11 MB AI runtime load only when you open those features)
 npm run preview    # serve dist/ at http://127.0.0.1:4173
@@ -62,6 +63,7 @@ Files are read with the browser File API and processed locally. The app makes no
 
 ## Docs
 
+- [Testing](docs/testing.md)
 - [Keyboard shortcuts](docs/shortcuts.md)
 - [3D cuboids on photos](docs/photo-cuboids.md)
 - [AI click-to-segment](docs/ai-assist.md)

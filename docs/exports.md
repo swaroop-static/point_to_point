@@ -8,7 +8,7 @@ All exports run in the browser and download straight to your machine. Nothing is
 
 - IDs are integers starting at 1 (categories follow class order; images follow project order). Images with no annotations are still listed.
 - `file_name` is the original file name; `width`/`height` are original pixels.
-- Box: `bbox = [x, y, w, h]`, `area = w*h`, no `segmentation`. Negative sizes are normalized.
+- Box: `bbox = [x, y, w, h]`, `area = w*h`, no `segmentation`. Negative sizes are normalized. **Export > COCO JSON (boxes also as polygons)** additionally writes each box as a 4-corner polygon, which segmentation tools (for example pycocotools' `segm` evaluation) need when a project mixes boxes and polygons; without it they fail on the first box. It turns boxes into rectangular masks, so use it only if you want that.
 - Polygon: `segmentation = [[x1, y1, x2, y2, ...]]` (one ring), `bbox` is the axis-aligned bounds, `area` is the shoelace area. No RLE.
 - Coordinates are clamped to the image and rounded to 2 decimals. `iscrowd` is always 0.
 - Skipped with an on-screen note: zero-area boxes, zero-area polygons (collinear points), annotations whose class no longer exists, polylines and keypoints.
@@ -37,3 +37,8 @@ labels/<name>.txt
 ## What has been verified
 
 Unit tests cover the COCO/YOLO numbers, clamping, degenerate geometry, name handling and a COCO export-then-import round trip. The ZIP writer is checked by an independent reader (including CRC-32) and by Windows `bsdtar`, and a headless-browser test downloads real COCO and YOLO exports and inspects them. **Not yet tested** against external consumers such as pycocotools or an actual Ultralytics training run.
+
+
+## Validation
+
+Exports were loaded with pycocotools 2.x: ids, categories, image sizes, bbox bounds and polygon mask areas/bboxes are consistent, and a self-evaluation (ground truth used as detections) scores AP = 1.0 for `bbox`, and for `segm` with the polygons option. Re-check any file with `python tools/validate_coco.py file.json`. YOLO was checked structurally only.

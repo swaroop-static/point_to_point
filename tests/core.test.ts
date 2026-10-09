@@ -168,3 +168,17 @@ describe('store undo/redo and gestures', () => {
     expect(s.isDirty()).toBe(false);
   });
 });
+
+describe('COCO option: boxesAsPolygons', () => {
+  it('adds a 4-corner segmentation to boxes only when asked, with unchanged bbox/area', () => {
+    const p = sampleProject();
+    const plain = exportCoco(p).dataset.annotations.filter((a) => !a.segmentation);
+    const asPoly = exportCoco(p, { boxesAsPolygons: true }).dataset.annotations;
+    expect(plain.length).toBeGreaterThan(0);
+    expect(asPoly.every((a) => a.segmentation && a.segmentation.length === 1)).toBe(true);
+    const box = asPoly.find((a) => a.segmentation![0].length === 8)!;
+    const [x, y, w, h] = box.bbox;
+    expect(box.segmentation![0]).toEqual([x, y, x + w, y, x + w, y + h, x, y + h]);
+    expect(box.area).toBeCloseTo(w * h, 9);
+  });
+});

@@ -10,10 +10,12 @@
     "preview": "vite preview --port 4173",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "e2e": "node e2e/run.mjs",
     "prebuild": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/three": "^0.170.0",
+    "playwright": "^1.47.0",
     "typescript": "^5.5.4",
     "vite": "^5.4.8",
     "vitest": "^2.1.9"
